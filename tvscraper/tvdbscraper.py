@@ -23,14 +23,27 @@ class TvDbScraper():
     @property
     def lang(self): return self.data['lang'] if self.data.has_key('lang') else 'de'
 
-    def search(self, **kwargs):
+    def search(self, *args, **kwargs):
 
         similar = []
         matches = []
-        search = self.data['episode'] if self.data.has_key('episode') and self.data['episode'] else self.data['subtitle']
+        subtitle = self.data['episode'] if self.data.has_key('episode') and self.data['episode'] else self.data['subtitle']
+        title = self.data['show'] if self.data.has_key('show') and self.data['show'] else self.data['title']
 
-        show = self._tvdb.get_series(self.data['tvdb_series'], self.lang)
-        if show:
+        search = "%s %s" % (title, subtitle)
+        result = self._tvdb.search("%s %s" % (title, subtitle), self.lang)
+        pprint(result)
+
+        result = self._tvdb.search(title, self.lang)
+        pprint(result)
+
+        result = self._tvdb.search(subtitle, self.lang)
+        pprint(result)
+
+
+        return False
+
+        if result:
             self.data['show'] = show.SeriesName
             for season in show:
                 for episode in season:
