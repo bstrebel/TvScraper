@@ -11,126 +11,38 @@ __author__ = 'bst'
 import sys, json, re
 from pprint import pprint
 
-import imdb                             # IMDbPy package python-imdbpy
-
-from googlesearch import GoogleSearch   # pip package
-from pytvdbapi import api               # pip package
-from fuzzywuzzy import fuzz             # pip package: requires python-levenbshtein!
-
 
 class Scraper:
 
+    from imdbscraper import IMDbScraper
+    from tvdbscraper import TvDbScraper
+
+    config = {
+
+        'imdb' : {
+            'class': IMDbScraper,
+            'query': "site:imdb.com"},
+        'tvdb' : {
+            'class': TvDbScraper,
+            'query': "site:thetvdb.com" }
+    }
+
     def __init__(self, data):
+
         self._data = data
 
     @property
     def data(self): return self._data
 
-    def search(self, **kwargs): pass
-
-class IMDbScraper(Scraper):
-
-    def __init__(self, data):
-        self._imdb = imdb.IMDb()
-        Scraper.__init__(self, data)
-
     def search(self, **kwargs):
 
-        if not self.data.has_key('imdb_tt'): return False
-        movie = self._imdb.get_movie(self.data['imdb_tt'])
-        if movie:
-            if movie['kind'] == 'episode':
-                self.data['show'] = movie['episode of']['title']
-                self.data['episode'] = movie['title']
-                self.data['season'] = movie['season']
-                self.data['number'] = movie['episode']
+        sites = kwargs['site'] if kwargs.has_key('site') else ['imdb','tvdb']
+        keys = kwargs['keys'] if kwargs.has_key('keys') else ['title', 'subtitle']
 
-            return True
+        for site in sites:
+            if self.config['site']['class']().search(self.data):
+                return
 
-        return False
-
-class TvDbScraper(Scraper):
-
-    def __init__(self, data):
-
-        self._lang = 'de'
-        self._tvdb = api.TVDB('4F36CC91D7116666')
-        Scraper.__init__(self, data)
-
-    @property
-    def lang(self): return self._lang
-
-    def search(self, **kwargs):
-
-        similar = []
-        matches = []
-        search = self.data['episode'] if self.data.has_key('episode') and self.data['episode'] else self.data['subtitle']
-
-        show = self._tvdb.get_series(self.data['tvdb_series'], self.lang)
-        if show:
-            self.data['show'] = show.SeriesName
-            for season in show:
-                for episode in season:
-                    if int(episode.seasonid) == int(self.data['tvdb_season']):
-                        name = episode.EpisodeName
-                        if fuzz.token_set_ratio(search, name) > 90:
-                            similar.append(episode)
-                        if fuzz.token_set_ratio(search, name) == 100:
-                            matches.append(episode)
-        if len(matches) > 0:
-            if len(matches) == 1:
-                self.data['show'] = show.SeriesName
-                self.data['episode'] = matches[0].EpisodeName
-                self.data['season'] = matches[0].SeasonNumber
-                self.data['number'] = matches[0].EpisodeNumber
-                self.data['season'] = matches[0].SeasonNumber
-                self.data['season'] = matches[0].SeasonNumber
-                self.data['tvdb_episode'] =  matches[0].id
-                return True
-            else:
-                print "Ambigious episode name [%s] for [%s]. Found multiple results ..." % (search, show.SeriesName)
-                for episode in similar:
-                    print episode.Name
-        else:
-            return False
-
-class GoogleScraper(Scraper):
-
-    config = {
-
-        'none' : { 'query': ""},
-        'imdb' : { 'query': "site:imdb.com"},
-        'tvdb' : { 'query': "site:thetvdb.com" }
-    }
-
-    def __init__(self, data):
-        Scraper.__init__(self, data)
-
-    def _parse_tvdb_result(self, result):
-
-        found = False
-        match = re.search('(.*): Season (\w+) Episode', result['titleNoFormatting'])
-        if match:
-            self.data['show'] = match.group(1)
-            self.data['season_name'] = match.group(2)
-            found = True
-
-        match = re.search('tab=season&seriesid=(\d+)&seasonid=(\d+)&lid=(\d+)', result['unescapedUrl'])
-        if match:
-            self.data['tvdb_series'] = match.group(1)
-            self.data['tvdb_season'] = match.group(2)
-            self.data['tvdb_lid'] = match.group(3)
-            self.data['tvdb_url'] = result['unescapedUrl']
-            found = True
-        else:
-            match = re.search('tab=seasonall&id=(\d+)&lid=(\d+)', result['unescapedUrl'])
-            if match:
-                self.data['tvdb_series'] = match.group(1)
-                self.data['tvdb_lid'] = match.group(2)
-                self.data['tvdb_url'] = result['unescapedUrl']
-                found = True
-
-        return TvDbScraper(self.data).search()
 
     def _parse_imdb_result(self, result):
 
