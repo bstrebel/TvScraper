@@ -13,23 +13,79 @@ import imdb     # IMDbPy package python-imdbpy
 
 class IMDbScraper():
 
-    def __init__(self, data):
-        self._data = data
+    def __init__(self, data=None):
+        self._data = data if data else {}
         self._imdb = imdb.IMDb()
-        self._DEBUG = True
-        self._pp = pprint.PrettyPrinter(indent=2,depth=8)
-        # Scraper.__init__(self, data)
 
     @property
     def data(self): return self._data
 
-    @property
-    def DEBUG(self): return self._DEBUG
+    def search(self, *args, **kwargs):
 
+        self.data.update(**kwargs)
+
+        if self.data.has_key('imdb_tt'):
+            movie = self._imdb.get_movie(self.data['imdb_tt'])
+            if movie:
+                if movie['kind'] == 'episode':
+                    # basic movie information
+                    # self.data['imdb_tt'] = movie.movieID
+                    self.data['show'] = movie.get('episode of', 'n/a')
+                    self.data['episode'] = movie.get('title', 'n/a')
+                    self.data['year'] = movie.get('year', 'n/a')
+                    # load movie attributes
+                    self._imdb.update(movie)
+                    self.data['season'] = movie.get('season',0)
+                    self.data['number'] = movie.get('episode',0)
+                    return True
+            print "Invalid imdb_tt [%s]" % (self.data['imdb_tt'])
+        else:
+            if self.data.has_key('episode'):
+                result = self._imdb.search_episode(self.data['episode'])
+            elif self.data.has_key('query'):
+                result = self._imdb.search_movie(kwargs['query'])
+
+            if result:
+                for movie in result:
+                    if movie['kind'] == 'episode':
+                        # basic movie information
+                        self.data['imdb_tt'] = movie.movieID
+                        self.data['show'] = movie.get('episode of', 'n/a')
+                        self.data['episode'] = movie.get('title', 'n/a')
+                        self.data['year'] = movie.get('year', 'n/a')
+                        # load movie attributes
+                        self._imdb.update(movie)
+                        #self.pp(movie.data)
+                        #self.data['show'] = movie['episode of']['title']
+                        #self.data['episode'] = movie['title']
+                        self.data['season'] = movie.get('season',0)
+                        self.data['number'] = movie.get('episode',0)
+                        return True
+
+        return False
+
+# region __main__
+
+def main():
+
+    data = {}
+    IMDbScraper(data).search('tv')
+    print(data)
+
+
+if __name__ == '__main__':
+
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+    main()
+
+# endregion
+
+'''
     def pp(self, obj):
         if self.DEBUG: self._pp.pprint(obj)
 
-    def search(self, type):
+    def search(self, **kwargs):
 
         ignore_titles = ['Terra X', 'heute-show']
         year = ''
@@ -41,7 +97,7 @@ class IMDbScraper():
             print "Ignoring title:", title
             return False
 
-        if type == 'tv':
+        if self.data['type'] == 'tv':
             # extract an remove year from episode titles
             match = re.match('(20[01][0-9])|(19[5-9][0-9])', title)
             if match:
@@ -72,52 +128,5 @@ class IMDbScraper():
                         return True
             return False
 
-    def _search(self, *args, **kwargs):
 
-        if kwargs.has_key('imdb_tt'):
-            movie = self._imdb.get_movie(kwargs['imdb_tt'])
-        else:
-            if kwargs.has_key('episode'):
-                result = self._imdb.search_episode(kwargs['episode'])
-            elif kwargs.has_key('query'):
-                self.pp(kwargs)
-                result = self._imdb.search_movie(kwargs['title'])
-
-        if result:
-            for movie in result:
-                self.pp(movie)
-                #self.pp(movie.data)
-                if movie['kind'] == 'episode':
-                    # basic movie information
-                    self.data['imdb_tt'] = movie.movieID
-                    self.data['show'] = movie.get('episode of', 'n/a')
-                    self.data['episode'] = movie.get('title', 'n/a')
-                    self.data['year'] = movie.get('year', 'n/a')
-                    # load movie attributes
-                    self._imdb.update(movie)
-                    #self.pp(movie.data)
-                    #self.data['show'] = movie['episode of']['title']
-                    #self.data['episode'] = movie['title']
-                    self.data['season'] = movie.get('season',0)
-                    self.data['number'] = movie.get('episode',0)
-                    return True
-
-        return False
-
-# region __main__
-
-def main():
-
-    data = {}
-    IMDbScraper(data).search('tv')
-    print(data)
-
-
-if __name__ == '__main__':
-
-    reload(sys)
-    sys.setdefaultencoding('utf-8')
-    main()
-
-# endregion
-
+'''

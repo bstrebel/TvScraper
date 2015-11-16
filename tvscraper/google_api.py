@@ -6,16 +6,7 @@ from pprint import pprint
 
 from googlesearch import GoogleSearch
 
-
-class GoogleHTTP():
-    pass
-
-class GoogleCSE():
-    pass
-
-
 class GoogleAPI():
-
 
     def __init__(self, data):
 
@@ -90,22 +81,59 @@ class GoogleAPI():
 
             print "[" + query + "]"
 
+            gs = GoogleSearch(query)
+
             if len(gs.result_data['results']) > 0:
                 for result in gs.top_results():
                     if getattr(self, '_parse_'+site+'_result')(result):
                         return
                 return
 
-    for entry in data:
-        GoogleScraper(entry).search()
-        print entry
 
-
-
-# region __Main__
+# region __main__
 
 def main():
-    pass
+
+    data = [
+        {
+            "title": "Terra X",
+            "subtitle": "Phantome der Tiefsee (2) - Monsterhaie",
+        },
+        {
+            "title": "Mord mit Aussicht",
+            "subtitle": "Vatertag",
+        }
+    ]
+
+    sites = [
+        {
+            'site':'site:imdb.com',
+            'query': ['title','subtitle']
+        },
+        {
+            'site': 'site:thetvdb.com',
+            'query': ['title']
+        },
+        {
+            'site': '',
+            'query': ['title','subtitle']
+        }
+    ]
+
+    for entry in data:
+        GoogleAPI(entry).search()
+
+    # for entry in data:
+    #     for site in sites:
+    #         query = site['site']
+    #         for key in site['query']:
+    #             query = query + " " + entry[key]
+    #         query = query.strip()
+    #         if GoogleAPI(entry).search(query):
+    #             pprint(entry)
+    #         else:
+    #             print 'Not found!'
+
 
 if __name__ == '__main__':
 
@@ -114,7 +142,6 @@ if __name__ == '__main__':
     main()
 
 # endregion
-
 
 '''
 
