@@ -29,14 +29,10 @@ class GoogleHTTP():
         if gs:
             for entry in gs:
                 found += 1
-                result = { 'name': entry['name'],
-                           'link': entry['link'],
-                           'description': entry['description'],
-                           'url': entry['link'] }
+                result = dict(name=entry.name, link=entry.link)
                 scraper['result'].append(result)
 
-        scraper = { 'GoogleHTTP': scraper}
-        self._data['scraper'] = scraper
+        self._data['scraper'].update({'GoogleHTTP': scraper})
         return found
 
 # region __main__

@@ -10,8 +10,7 @@ import json
 class BingAPI():
 
     def __init__(self, data):
-
-        # azure datamarket account key
+        # azure data market account key
         self._key = 'XVXp5LAxtPxNAt36DavCzWtbHKX8I1sseAUK2om1Diw='
         self._data = data
 
@@ -38,24 +37,19 @@ class BingAPI():
         response = requests.get(url, auth=(self._key,self._key))
 
         if response:
+            scraper['response'] = response.status_code
             content = json.loads(response.content)
             if response.status_code == 200:
                 results = content['d']['results']
                 # print json.dumps(results, indent=4, ensure_ascii=False, encoding='utf-8')
                 for entry in results:
                     found += 1
-                    result = { 'name': entry['Title'],
-                               'link': entry['Url'],
-                               'url': entry['DisplayUrl'] }
+                    result = {'name': entry['Title'],'link': entry['Url']}
                     scraper['result'].append(result)
-
-                scraper = { 'BingAPI': scraper}
-                self._data['scraper'] = scraper
-
-                # print json.dumps(scraper, indent=4, ensure_ascii=False, encoding='utf-8')
             else:
-                print "Request returned with [%s] %s!" % (response.status_code, response.text)
-
+                pass
+                # print "Request returned with [%s] %s!" % (response.status_code, response.text)
+            self._data['scraper'].update({'BingAPI': scraper})
         return found
 
 # region __main__

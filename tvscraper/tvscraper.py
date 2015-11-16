@@ -16,6 +16,7 @@ from imdbscraper import IMDbScraper
 from tvdbscraper import TvDbScraper
 from bing_api import BingAPI
 from google_cse import GoogleCSE
+from google_http import GoogleHTTP
 
 
 class TvScraper:
@@ -23,6 +24,7 @@ class TvScraper:
     def __init__(self, data=None):
 
         self._data = data if data else {}
+        if not self._data.has_key('scraper'): self._data['scraper'] = {}
 
     @property
     def data(self): return self._data
@@ -70,7 +72,10 @@ class TvScraper:
                     self.data['imdb_tt'] = match.group(1)
                     return IMDbScraper(self.data).search()
             else:
-                print "%s [%s]" % (result['name'], result['link'])
+                pass
+                # print "[%s] [%s]" % (result['name'], result['link'])
+
+        return False
 
     def search(self, **kwargs):
 
@@ -89,14 +94,16 @@ class TvScraper:
             if BingAPI(self.data).search(query, site='imdb.com'):
                 if self._check_scraper_result('BingAPI'): return self.data
 
-            # if BingAPI(self.data).search(query):
-            #    if self._check_scraper_result('BingAPI'): return True
+            if BingAPI(self.data).search(query):
+                if self._check_scraper_result('BingAPI'): return self.data
+
+            if GoogleHTTP(self.data).search(query):
+                if self._check_scraper_result('GoogleHTTP'): return self.data
 
             if GoogleCSE(self.data).search(query):
-                if self._check_scraper_result('GoogleCSE'): return self.data
+                 if self._check_scraper_result('GoogleCSE'): return self.data
 
-
-        return None
+        return self.data
 
 # region __main__
 

@@ -27,18 +27,24 @@ class IMDbScraper():
         if self.data.has_key('imdb_tt'):
             movie = self._imdb.get_movie(self.data['imdb_tt'])
             if movie:
+                # load movie attributes
+                self._imdb.update(movie)
+                self.data['year'] = movie.get('year', 'n/a')
+                self.data['kind'] = movie.get('kind', 'unknown')
                 if movie['kind'] == 'episode':
-                    # basic movie information
-                    # self.data['imdb_tt'] = movie.movieID
                     self.data['show'] = movie.get('episode of', 'n/a')
                     self.data['episode'] = movie.get('title', 'n/a')
-                    self.data['year'] = movie.get('year', 'n/a')
-                    # load movie attributes
-                    self._imdb.update(movie)
                     self.data['season'] = movie.get('season',0)
                     self.data['number'] = movie.get('episode',0)
-                    return True
-            print "Invalid imdb_tt [%s]" % (self.data['imdb_tt'])
+                elif movie['kind'] == 'tv movie':
+                    self.data['name'] = movie.get('title','n/a')
+                else:
+                    #self.data['imdb_data'] = dict(movie.data)
+                    pass
+                return True
+            else:
+                print "Invalid imdb_tt [%s]" % (self.data['imdb_tt'])
+                return False
         else:
             if self.data.has_key('episode'):
                 result = self._imdb.search_episode(self.data['episode'])

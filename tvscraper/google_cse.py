@@ -46,8 +46,10 @@ class GoogleCSE(object):
         scraper = {'query': query, 'url': url, 'result': []}; found = 0
 
         response = requests.get(url)
+        scraper['response'] = "%s [%s]" % (response.status_code, response.text)
 
         if response:
+            scraper['response'] = response.status_code
             content = json.loads(response.content)
             if response.status_code == 200:
                 if content.has_key('items'):
@@ -55,16 +57,13 @@ class GoogleCSE(object):
                     # print json.dumps(results, indent=4, ensure_ascii=False, encoding='utf-8')
                     for entry in results:
                         found += 1
-                        result = { 'name': entry['title'],
-                                   'link': entry['link'],
-                                   'url': entry['formattedUrl']}
-
+                        result = {'name': entry['title'], 'link': entry['link']}
                         scraper['result'].append(result)
-                scraper = { 'GoogleCSE': scraper}
-                self._data['scraper'] = scraper
-
             else:
-                print "Request returned with [%s] %s!" % (response.status_code, response.text)
+                pass
+                # print "Request returned with [%s] %s!" % (response.status_code, response.text)
+
+            self._data['scraper'].update({'GoogleCSE': scraper})
 
         return found
 
