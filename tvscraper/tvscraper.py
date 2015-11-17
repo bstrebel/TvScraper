@@ -11,13 +11,11 @@ __author__ = 'bst'
 import sys, json, re
 from pprint import pprint
 
-
 from imdbscraper import IMDbScraper
 from tvdbscraper import TvDbScraper
 from bing_api import BingAPI
 from google_cse import GoogleCSE
 from google_http import GoogleHTTP
-
 
 class TvScraper:
 

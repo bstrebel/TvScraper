@@ -30,7 +30,7 @@ class BingAPI():
     def search(self, query, **kwargs):
 
         url = self._request_url(query, **kwargs)
-        scraper = {'query': query, 'url': url, 'result': []}
+        scraper = {'query': query, 'result': []}
         if kwargs.has_key('site'): scraper['site'] = kwargs['site']
         found = 0
 
