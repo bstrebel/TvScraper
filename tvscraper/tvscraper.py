@@ -72,8 +72,7 @@ class TvScraper:
                     self.data['imdb_tt'] = match.group(1)
                     return IMDbScraper(self.data).search()
             else:
-                pass
-                # print "[%s] [%s]" % (result['name'], result['link'])
+                continue
 
         return False
 
@@ -100,8 +99,8 @@ class TvScraper:
             if GoogleHTTP(self.data).search(query):
                 if self._check_scraper_result('GoogleHTTP'): return self.data
 
-            if GoogleCSE(self.data).search(query):
-                 if self._check_scraper_result('GoogleCSE'): return self.data
+            #if GoogleCSE(self.data).search(query):
+            #    if self._check_scraper_result('GoogleCSE'): return self.data
 
         return self.data
 
